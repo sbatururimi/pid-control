@@ -46,6 +46,8 @@ public:
      * Calculate the total PID error.
      */
     double TotalError();
+    
+    void UpdateControlGain(int index, double value);
 };
 
 #endif /* PID_H */

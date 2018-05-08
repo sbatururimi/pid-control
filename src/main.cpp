@@ -65,14 +65,17 @@ int main()
     int count = 0;
     int n = 100;
     double err = 0.;
-    bool twiddle_started = false;
+    bool is_run_cycle = true;
     
     std::vector<double> dp = {1., 1., 1.};
     double best_err;
     int it = 0;
+    int index = 0;
+//    bool compute_pid = false;
     
     
-    h.onMessage([&pid, &count, &err, &dp, &it, &twiddle_started, &best_err, /*begin,*/ n ](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+    h.onMessage([&pid, &count, &err, &dp, &it, &best_err, &index, &is_run_cycle, n ]
+                (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
         // "42" at the start of the message means there's a websocket message event.
         // The 4 signifies a websocket message
         // The 2 signifies a websocket event
@@ -101,41 +104,71 @@ int main()
                      * NOTE: Feel free to play around with the throttle and speed. Maybe use
                      * another PID controller to control the speed!
                      */
-                    pid.UpdateError(cte);
-                    steer_value += pid.TotalError();
-                    
-                    
-                    // DEBUG
-                    std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
-                    
-                    json msgJson;
-                    msgJson["steering_angle"] = steer_value;
-                    msgJson["throttle"] = 0.3;
-//                    msgJson["throttle"] = (1 - std::abs(steer_value)) * 0.5 + 0.2;
-                    auto msg = "42[\"steer\"," + msgJson.dump() + "]";
-                    std::cout << msg << std::endl;
-                    ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
-                    
-                    if (!twiddle_started) {
+                    // twiddle
+                    if (is_run_cycle) {
+                        pid.UpdateError(cte);
+                        steer_value += pid.TotalError();
+                        
+                        
+                        // DEBUG
+                        std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
+                        
+                        // adjust the move using the PID controller
+                        json msgJson;
+                        msgJson["steering_angle"] = steer_value;
+                        msgJson["throttle"] = 0.3;
+                        auto msg = "42[\"steer\"," + msgJson.dump() + "]";
+                        std::cout << msg << std::endl;
+                        ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
+                        
+                        
                         if(count >= n){
                             err += cte * cte;
                         }
+                        count++;
                         
                         if (count == 2 * n) {
                             err = err / n;
                             best_err = err;
-                            count = 0;
-                            twiddle_started = true;
                             
-                        }                        
-                        count++;
+                            // initial values for twiddle computed
+                            is_run_cycle = false;
+                            
+                            // reset values
+                            count = 0;
+                            err = 0.;
+                        }
                     }
                     
-                    if (twiddle_started) {
-                        it = 0;
+                    // compute control gains (Kp, Ki, Kd) using twiddle
+                    if (!is_run_cycle) {
+                        
                         double tol = 0.2;
-                        if (sum(dp) > tol) {
+                        double sum_dp = sum(dp);
+                        if(index < dp.size() && sum_dp > tol){
+                            // (1) update a control gain + reset the simulator
                             std::cout << "Iteration " << it <<", best error = "<< best_err;
+                            pid.UpdateControlGain(index, dp[index]);
+                            index++;
+                            
+                            // reset the simulator
+                            std::string reset_msg = "42[\"reset\",{}]";
+                            ws.send(reset_msg.data(), reset_msg.length(), uWS::OpCode::TEXT);
+                            
+                            is_run_cycle = true;
+//                            compute_pid = true;
+                            
+//                            pid.UpdateError(cte);
+//                            steer_value += pid.TotalError();
+//                            json msgJson;
+//                            msgJson["steering_angle"] = steer_value;
+//                            msgJson["throttle"] = 0.3;
+//                            auto msg = "42[\"steer\"," + msgJson.dump() + "]";
+//                            ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
+                            
+                        }
+                        else if(sum_dp > tol){
+                            it += 1;
                         }
                     }
                 }
