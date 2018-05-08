@@ -19,10 +19,19 @@ private:
     double _best_err;
 
 public:
-    Twiddle(): _best_err(0.);
+    Twiddle(): _best_err(0.){};
+//    Twiddle();
     virtual ~Twiddle();
-    void Init(std::vector<double> p, std::vector<double> dp);
-    void run(double tol = 0.2, double error);
+    void Init();
+    void run(double error, double tol = 0.2);
+    
+    double Kp();
+    double Ki();
+    double Kd();
+    
+    std::vector<double> params(){
+        return _params;
+    }
 };
 
 

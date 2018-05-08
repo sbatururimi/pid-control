@@ -1,6 +1,8 @@
 #ifndef PID_H
 #define PID_H
 
+#include <vector>
+
 class PID {
 public:
     /*
@@ -47,7 +49,8 @@ public:
      */
     double TotalError();
     
-    void UpdateControlGain(int index, double value);
+//    void UpdateControlGain(int index, double value);
+    void UpdateControlGains(std::vector<double>controls);
 };
 
 #endif /* PID_H */

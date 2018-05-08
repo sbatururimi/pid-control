@@ -2,6 +2,7 @@
 #include <iostream>
 #include "json.hpp"
 #include "PID.h"
+#include "Twiddle.hpp"
 #include <math.h>
 
 // for convenience
@@ -28,18 +29,12 @@ std::string hasData(std::string s) {
     return "";
 }
 
-double sum(std::vector<double> v){
-    double _sum = 0.;
-    for(auto &n: v){
-        _sum += n;
-    }
-    return _sum;
-}
-
-//void PID::twiddle(double best_err, double tol){
-//    
-//    while (sum(dp) > tol)
-//        sdt:cout << "Iteration "<< it <<", best error = "<< best_err;
+//double sum(std::vector<double> v){
+//    double _sum = 0.;
+//    for(auto &n: v){
+//        _sum += n;
+//    }
+//    return _sum;
 //}
 
 
@@ -47,7 +42,6 @@ int main()
 {
     uWS::Hub h;
     
-    PID pid;
     // TODO: Initialize the pid variable.
     // p term-the car quickly overshoot, trying to steer the car toward the center of the road
     // i term: no bias present for the simulator
@@ -55,27 +49,34 @@ int main()
 //    double Kp = 0.15;
 //    double Ki = 0.0;
 //    double Kd = 2.5;
-    double Kp = 0.;
-    double Ki = 0.;
-    double Kd = 0.;
-    pid.Init(Kp, Ki, Kd);
+    
+    Twiddle twiddle;
+    twiddle.Init();
+    
+    PID pid;
+    pid.Init(twiddle.Kp(), twiddle.Ki(), twiddle.Kd());
+    
+    
+    
     
 
-    clock_t begin;
+//    clock_t begin;
     int count = 0;
     int n = 100;
     double err = 0.;
-    bool is_run_cycle = true;
-    
-    std::vector<double> dp = {1., 1., 1.};
-    double best_err;
-    int it = 0;
-    int index = 0;
-    bool first_twiddle_run = true;
+//    bool is_run_cycle = true;
+//
+//    std::vector<double> dp = {1., 1., 1.};
+//    double best_err;
+//    int it = 0;
+//    int index = 0;
+//    bool first_twiddle_run = true;
 //    bool compute_pid = false;
     
     
-    h.onMessage([&pid, &count, &err, &dp, &it, &best_err, &index, &is_run_cycle, & first_twiddle_run,n ]
+//    h.onMessage([&pid, &count, &err, &dp, &it, &best_err, &index, &is_run_cycle, & first_twiddle_run,n ]
+//                (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+    h.onMessage([&pid, &twiddle, &count, &err, n]
                 (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
         // "42" at the start of the message means there's a websocket message event.
         // The 4 signifies a websocket message
@@ -88,13 +89,6 @@ int main()
                 std::string event = j[0].get<std::string>();
                 if (event == "telemetry") {
                     // j[1] is the data JSON object
-//                    clock_t end = clock();
-//                    std::cout << double(end - begin) / CLOCKS_PER_SEC << " sec" << std::endl;
-//
-////                    std::cout << j << std::endl;
-//                    std::cout << count << " step";
-//                    std::cout << "---" << std::endl;
-                    
                     double cte = std::stod(j[1]["cte"].get<std::string>());
                     double speed = std::stod(j[1]["speed"].get<std::string>());
                     double angle = std::stod(j[1]["steering_angle"].get<std::string>());
@@ -106,7 +100,7 @@ int main()
                      * another PID controller to control the speed!
                      */
                     // twiddle
-                    if (is_run_cycle) {
+//                    if (is_run_cycle) {
                         pid.UpdateError(cte);
                         steer_value += pid.TotalError();
                         
@@ -130,81 +124,9 @@ int main()
                         
                         if (count == 2 * n) {
                             err = err / n;
-//                            best_err = err;
-                            
-                            // initial values for twiddle computed
-                            is_run_cycle = false;
-                            
-                            // reset values
-                            count = 0;
-//                            err = 0.;
+                            twiddle.run(err);
+                            pid.UpdateControlGains(twiddle.params());
                         }
-                    }
-                    
-                    // compute control gains (Kp, Ki, Kd) using twiddle
-                    if (!is_run_cycle) {
-                        double tol = 0.2;
-                        double sum_dp = sum(dp);
-                        
-                        if (first_twiddle_run == 0) {
-                            first_twiddle_run = false;
-                            best_err = err;
-                        }
-                        
-                        if(index <= dp.size() && sum_dp > tol){
-                            if (index < dp.size()) {
-                                // (1) update a control gain + reset the simulator
-                                //                                std::cout << "Iteration " << it <<", best error = "<< best_err;
-                                pid.UpdateControlGain(index, dp[index]);
-                                
-                                // reset the simulator
-                                std::string reset_msg = "42[\"reset\",{}]";
-                                ws.send(reset_msg.data(), reset_msg.length(), uWS::OpCode::TEXT);
-                                
-                                is_run_cycle = true;
-                            }
-                            
-                            // if we have already updated 1 control gain, then try to adjust the dp
-                            int i = index - 1;
-                            if (i >= 0) {
-                                if(err < best_err){
-                                    best_err = err;
-                                    dp[i] *= 1.1;
-                                }
-                                else{                                    
-                                    pid.UpdateControlGain(i, - 2 * dp[i]);
-                                    
-                                    // reset the simulator
-                                    std::string reset_msg = "42[\"reset\",{}]";
-                                    ws.send(reset_msg.data(), reset_msg.length(), uWS::OpCode::TEXT);
-                                    
-                                    is_run_cycle = true;
-                                    
-                                    
-                                }
-                            }
-                            
-                            index++;
-                            
-                            
-                            
-//                            if (index < dp.size()) {
-//                                // (1) update a control gain + reset the simulator
-////                                std::cout << "Iteration " << it <<", best error = "<< best_err;
-//                                pid.UpdateControlGain(index, dp[index]);
-//
-//                                // reset the simulator
-//                                std::string reset_msg = "42[\"reset\",{}]";
-//                                ws.send(reset_msg.data(), reset_msg.length(), uWS::OpCode::TEXT);
-//
-//                                is_run_cycle = true;
-//                                index++;
-//                            }
-                        }
-                        else if(sum_dp > tol){
-                            it += 1;
-                        }
-                    }
                 }
             } else {
                 // Manual driving
@@ -229,9 +151,10 @@ int main()
         }
     });
     
-    h.onConnection([&h, &begin](uWS::WebSocket<uWS::SERVER> ws, uWS::HttpRequest req) {
+//    h.onConnection([&h, &begin](uWS::WebSocket<uWS::SERVER> ws, uWS::HttpRequest req) {
+    h.onConnection([&h](uWS::WebSocket<uWS::SERVER> ws, uWS::HttpRequest req) {
         std::cout << "Connected!!!" << std::endl;
-        begin = clock();
+//        begin = clock();
     });
     
     h.onDisconnection([&h](uWS::WebSocket<uWS::SERVER> ws, int code, char *message, size_t length) {

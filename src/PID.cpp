@@ -24,17 +24,25 @@ void PID::Init(double _Kp, double _Ki, double _Kd) {
     prev_cte = 0;
 }
 
-void PID::UpdateControlGain(int index, double value){
-    if(index == 0){
-        Kp += value;
-    }
-    else if (index == 1){
-        Ki += value;
-    }
-    else{
-        Kd += value;
-    }
+//void PID::UpdateControlGain(int index, double value){
+//    if(index == 0){
+//        Kp += value;
+//    }
+//    else if (index == 1){
+//        Ki += value;
+//    }
+//    else{
+//        Kd += value;
+//    }
+//}
+
+void PID::UpdateControlGains(std::vector<double>controls){
+    Kp = controls[0];
+    Ki = controls[1];
+    Kd = controls[2];
 }
+
+
 //double sum(std::vector<double> v){
 //    double _sum = 0.;
 //    for(auto &n: v){
