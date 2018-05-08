@@ -1,6 +1,7 @@
 #include "PID.h"
 
 #include <iostream>
+#include <vector>
 using namespace std;
 
 /*
@@ -19,18 +20,28 @@ void PID::Init(double _Kp, double _Ki, double _Kd) {
     p_error = 0;
     i_error = 0;
     d_error = 0;
-    
+
     prev_cte = 0;
 }
 
-
-//void PID::twiddle(double tol){
+//double sum(std::vector<double> v){
+//    double _sum = 0.;
+//    for(auto &n: v){
+//        _sum += n;
+//    }
+//    return _sum;
+//}
+//
+//void PID::twiddle(double best_err, double tol){
 //    int n_params = 3;
-//    std::vector<double> dp;
-////    std::vector<double> params;
-//    for (int i = 0; i < 3; ++i) {
+//    std::vector<double> dp = {1., 1., 1.};
+//    std::vector<double>
+//    int it = 0;
+//    while (sum(dp) > tol)
+//        sdt:cout << "Iteration "<< it <<", best error = "<< best_err;
 //    }
 //}
+
 
 void PID::UpdateError(double cte) {
     // proportional error is set to the new cte
