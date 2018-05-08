@@ -71,10 +71,11 @@ int main()
     double best_err;
     int it = 0;
     int index = 0;
+    bool first_twiddle_run = true;
 //    bool compute_pid = false;
     
     
-    h.onMessage([&pid, &count, &err, &dp, &it, &best_err, &index, &is_run_cycle, n ]
+    h.onMessage([&pid, &count, &err, &dp, &it, &best_err, &index, &is_run_cycle, & first_twiddle_run,n ]
                 (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
         // "42" at the start of the message means there's a websocket message event.
         // The 4 signifies a websocket message
@@ -129,43 +130,76 @@ int main()
                         
                         if (count == 2 * n) {
                             err = err / n;
-                            best_err = err;
+//                            best_err = err;
                             
                             // initial values for twiddle computed
                             is_run_cycle = false;
                             
                             // reset values
                             count = 0;
-                            err = 0.;
+//                            err = 0.;
                         }
                     }
                     
                     // compute control gains (Kp, Ki, Kd) using twiddle
                     if (!is_run_cycle) {
-                        
                         double tol = 0.2;
                         double sum_dp = sum(dp);
-                        if(index < dp.size() && sum_dp > tol){
-                            // (1) update a control gain + reset the simulator
-                            std::cout << "Iteration " << it <<", best error = "<< best_err;
-                            pid.UpdateControlGain(index, dp[index]);
+                        
+                        if (first_twiddle_run == 0) {
+                            first_twiddle_run = false;
+                            best_err = err;
+                        }
+                        
+                        if(index <= dp.size() && sum_dp > tol){
+                            if (index < dp.size()) {
+                                // (1) update a control gain + reset the simulator
+                                //                                std::cout << "Iteration " << it <<", best error = "<< best_err;
+                                pid.UpdateControlGain(index, dp[index]);
+                                
+                                // reset the simulator
+                                std::string reset_msg = "42[\"reset\",{}]";
+                                ws.send(reset_msg.data(), reset_msg.length(), uWS::OpCode::TEXT);
+                                
+                                is_run_cycle = true;
+                            }
+                            
+                            // if we have already updated 1 control gain, then try to adjust the dp
+                            int i = index - 1;
+                            if (i >= 0) {
+                                if(err < best_err){
+                                    best_err = err;
+                                    dp[i] *= 1.1;
+                                }
+                                else{                                    
+                                    pid.UpdateControlGain(i, - 2 * dp[i]);
+                                    
+                                    // reset the simulator
+                                    std::string reset_msg = "42[\"reset\",{}]";
+                                    ws.send(reset_msg.data(), reset_msg.length(), uWS::OpCode::TEXT);
+                                    
+                                    is_run_cycle = true;
+                                    
+                                    
+                                }
+                            }
+                            
                             index++;
                             
-                            // reset the simulator
-                            std::string reset_msg = "42[\"reset\",{}]";
-                            ws.send(reset_msg.data(), reset_msg.length(), uWS::OpCode::TEXT);
                             
-                            is_run_cycle = true;
-//                            compute_pid = true;
                             
-//                            pid.UpdateError(cte);
-//                            steer_value += pid.TotalError();
-//                            json msgJson;
-//                            msgJson["steering_angle"] = steer_value;
-//                            msgJson["throttle"] = 0.3;
-//                            auto msg = "42[\"steer\"," + msgJson.dump() + "]";
-//                            ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
-                            
+//                            if (index < dp.size()) {
+//                                // (1) update a control gain + reset the simulator
+////                                std::cout << "Iteration " << it <<", best error = "<< best_err;
+//                                pid.UpdateControlGain(index, dp[index]);
+//
+//                                // reset the simulator
+//                                std::string reset_msg = "42[\"reset\",{}]";
+//                                ws.send(reset_msg.data(), reset_msg.length(), uWS::OpCode::TEXT);
+//
+//                                is_run_cycle = true;
+//                                index++;
+//                            }
                         }
                         else if(sum_dp > tol){
                             it += 1;

@@ -36,6 +36,7 @@
 /* Begin PBXBuildFile section */
 		1F944E2BA93745739A0016BB /* PID.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EC11BF00C7A14AAB99F68EFE /* PID.cpp */; };
 		B53AB038B1F34D3F817B55F5 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EFCC6694106D415BB1B9EE82 /* main.cpp */; };
+		D906736120A18773004FE140 /* Twiddle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D906735F20A18773004FE140 /* Twiddle.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -67,6 +68,8 @@
 		48527F4EB0314CD1A1739DAC /* CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
 		B6DD640224BF48FBAB0E39D0 /* CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
 		BAA7903655384934B0B5D12A /* pid */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; path = pid; sourceTree = BUILT_PRODUCTS_DIR; };
+		D906735F20A18773004FE140 /* Twiddle.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = Twiddle.cpp; path = src/Twiddle.cpp; sourceTree = "<group>"; };
+		D906736020A18773004FE140 /* Twiddle.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = Twiddle.hpp; path = src/Twiddle.hpp; sourceTree = "<group>"; };
 		D935CCF9209CA478009BA858 /* PID.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PID.h; path = src/PID.h; sourceTree = "<group>"; };
 		EC11BF00C7A14AAB99F68EFE /* PID.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = PID.cpp; path = src/PID.cpp; sourceTree = SOURCE_ROOT; };
 		EFCC6694106D415BB1B9EE82 /* main.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = main.cpp; path = src/main.cpp; sourceTree = SOURCE_ROOT; };
@@ -136,6 +139,7 @@
 		D935CCF7209CA458009BA858 /* Header Files */ = {
 			isa = PBXGroup;
 			children = (
+				D906736020A18773004FE140 /* Twiddle.hpp */,
 				D935CCF9209CA478009BA858 /* PID.h */,
 			);
 			name = "Header Files";
@@ -144,6 +148,7 @@
 		F33DD22658FC4E0EA8B100F5 /* Source Files */ = {
 			isa = PBXGroup;
 			children = (
+				D906735F20A18773004FE140 /* Twiddle.cpp */,
 				EC11BF00C7A14AAB99F68EFE /* PID.cpp */,
 				EFCC6694106D415BB1B9EE82 /* main.cpp */,
 			);
@@ -228,6 +233,7 @@
 			files = (
 				1F944E2BA93745739A0016BB /* PID.cpp in Sources */,
 				B53AB038B1F34D3F817B55F5 /* main.cpp in Sources */,
+				D906736120A18773004FE140 /* Twiddle.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
