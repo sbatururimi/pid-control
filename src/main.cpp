@@ -37,7 +37,6 @@ std::string hasData(std::string s) {
 //    return _sum;
 //}
 
-
 int main()
 {
     uWS::Hub h;
@@ -55,8 +54,6 @@ int main()
     
     PID pid;
     pid.Init(twiddle.Kp(), twiddle.Ki(), twiddle.Kd());
-    
-    
     
     
 
@@ -126,6 +123,9 @@ int main()
                             err = err / n;
                             twiddle.run(err);
                             pid.UpdateControlGains(twiddle.params());
+                            
+                            // reset count
+                            count = 0;
                         }
                 }
             } else {

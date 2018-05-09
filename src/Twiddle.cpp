@@ -6,6 +6,8 @@
 //
 
 #include "Twiddle.hpp"
+#include <iostream>
+
 
 //Twiddle::Twiddle(){};
 Twiddle::~Twiddle(){};
@@ -15,13 +17,42 @@ void Twiddle::Init(){
     _dp = {1., 1., 1.};
 }
 
+double sum(std::vector<double> v){
+    double _sum = 0.;
+    for(auto &n: v){
+        _sum += n;
+    }
+    return _sum;
+}
+
+
+bool Twiddle::_isStepUnknown(){
+    return (_step & StepUnknown) == StepUnknown;
+}
+
+
+void Twiddle::markBestErrorSet(){
+    _step |= BestErrorSet;
+}
+
 void Twiddle::run(double error, double tol){
     // best_error not yet set
-    if(_best_err < __DBL_EPSILON__){
+    //    std::cout << "eps= "<<__DBL_EPSILON__ << std::endl;
+    //    if(_best_err < __DBL_EPSILON__){
+    
+    if(_isStepUnknown()){
         _best_err = error;
+        _it = 0;
+        markBestErrorSet();
         return;
     }
+    
+    if(sum(_dp) < tol){
+        std::cout << "Iteration " << _it << ", best error = " << error;
+        
+    }
 }
+
 
 double Twiddle::Kp(){
     return _params[0];
