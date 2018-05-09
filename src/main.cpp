@@ -100,8 +100,7 @@ int main()
 //                    if (is_run_cycle) {
                         pid.UpdateError(cte);
                         steer_value += pid.TotalError();
-                        
-                        
+                    
                         // DEBUG
                         std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
                         
@@ -121,11 +120,18 @@ int main()
                         
                         if (count == 2 * n) {
                             err = err / n;
-                            twiddle.run(err);
+                            bool shouldResetSimulator = false;
+                            twiddle.run(err, shouldResetSimulator);
                             pid.UpdateControlGains(twiddle.params());
                             
                             // reset count
                             count = 0;
+                            
+                            // do we need to reset the simulator?
+                            if (shouldResetSimulator) {
+                                std::string reset_msg = "42[\"reset\",{}]";
+                                ws.send(reset_msg.data(), reset_msg.length(), uWS::OpCode::TEXT);
+                            }
                         }
                 }
             } else {

@@ -14,6 +14,8 @@
 
 const uint8_t StepUnknown = 0;
 const uint8_t BestErrorSet = 0x1;
+const uint8_t DpSumChecked = 0x2;
+const uint8_t UpdateNextParam = 0x4;
 
 class Twiddle{
 private:
@@ -27,19 +29,28 @@ private:
     double _best_err;
     
     // Steps using a 8 bit mask
-    bool _isStepUnknown();
+    bool _isStepUnknownSet();
+    bool _isStepDpSumCheckedSet();
+    bool _isUpdateNextParamSet();
     
     /*
      * Specify that the best error has been initialized
      */
-    void markBestErrorSet();
+    void _setBestError();
+    void _setDpSumChecked();
+    void _setUpdateNextParam();
+    
+    void _unsetDpSumChecked();
+    void _unsetUpdateNextParam();
+    
+    void _incrementVectorWithDp();
 
 public:
     Twiddle(): _index(0), _step(StepUnknown), _best_err(0.) {};
 //    Twiddle();
     virtual ~Twiddle();
     void Init();
-    void run(double error, double tol = 0.2);
+    void run(double error, bool &shouldResetSimulator, double tol = 0.2);
     
     double Kp();
     double Ki();
