@@ -14,10 +14,21 @@ Twiddle::~Twiddle(){};
 
 void Twiddle::Init(){
 //    _params = {0.15, 0., 2.5};
-    _params = {0.8, 0., 2.69};
-    _dp = {0.0005, 0.0005, 0.0005};
+//    _params = {0.09, 0., 2.69};
+//    _dp = {0.0005, 0.0005, 0.0005};
 //    _dp = {0.000533739, 0.000131002, 0.000239182};
+    
+    _params = {0.5, 0., 3};
+    _dp = {0.1, 0.1, 0.1};
 }
+void printVectorValues(std::vector<double> v, std::string name){
+    std::cout << name <<" = [";
+    for (auto &n: v) {
+        std::cout << n << " ";
+    }
+    std::cout << "]" << std::endl;
+}
+
 
 double sum(std::vector<double> v){
     double _sum = 0.;
@@ -91,7 +102,6 @@ void Twiddle::run(double error, bool &shouldResetSimulator, double tol){
         _best_err = error;
         _it = 0;
         _setBestError();
-//        return;
     }
     
     // do we need to check the sum(dp) at this step? (if inside the for-loop, then we don't need to do that,
@@ -100,6 +110,8 @@ void Twiddle::run(double error, bool &shouldResetSimulator, double tol){
         double s = sum(_dp);
         if(s > tol){
             std::cout << "Iteration " << _it << ", best error = " << error << ", sum(dp) = "<< s <<  std::endl;
+            printVectorValues(_params, "p");
+            printVectorValues(_dp, "dp");
             _incrementVectorWithDp();
             
             shouldResetSimulator = true;
@@ -108,17 +120,8 @@ void Twiddle::run(double error, bool &shouldResetSimulator, double tol){
             _setDpSumChecked();
             return;
         }
-        std::cout << "Optimal params=[";
-        for (auto &n: _params) {
-            std::cout << n << " ";
-        }
-        std::cout << "]" << std::endl;
-        
-        std::cout << "Optimal d=[";
-        for (auto &n: _dp) {
-            std::cout << n << " ";
-        }
-        std::cout << "]" << std::endl;
+        printVectorValues(_params, "p");
+        printVectorValues(_dp, "dp");
         
         return;
     }

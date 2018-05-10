@@ -56,7 +56,7 @@ int main()
     pid.Init(twiddle.Kp(), twiddle.Ki(), twiddle.Kd());
     
     int count = 0;
-    int n = 100;
+    int n = 300;
     double err = 0.;
     
     //    h.onMessage([&pid, &count, &err, &dp, &it, &best_err, &index, &is_run_cycle, & first_twiddle_run,n ]

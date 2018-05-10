@@ -24,42 +24,12 @@ void PID::Init(double _Kp, double _Ki, double _Kd) {
     prev_cte = 0;
 }
 
-//void PID::UpdateControlGain(int index, double value){
-//    if(index == 0){
-//        Kp += value;
-//    }
-//    else if (index == 1){
-//        Ki += value;
-//    }
-//    else{
-//        Kd += value;
-//    }
-//}
 
 void PID::UpdateControlGains(std::vector<double>controls){
     Kp = controls[0];
     Ki = controls[1];
     Kd = controls[2];
 }
-
-
-//double sum(std::vector<double> v){
-//    double _sum = 0.;
-//    for(auto &n: v){
-//        _sum += n;
-//    }
-//    return _sum;
-//}
-//
-//void PID::twiddle(double best_err, double tol){
-//    int n_params = 3;
-//    std::vector<double> dp = {1., 1., 1.};
-//    std::vector<double>
-//    int it = 0;
-//    while (sum(dp) > tol)
-//        sdt:cout << "Iteration "<< it <<", best error = "<< best_err;
-//    }
-//}
 
 
 void PID::UpdateError(double cte) {
