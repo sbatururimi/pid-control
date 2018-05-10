@@ -12,10 +12,11 @@
 #include <vector>
 
 
-const uint8_t StepUnknown = 0;
+const uint8_t StepUnknown = 0x0;
 const uint8_t BestErrorSet = 0x1;
 const uint8_t DpSumChecked = 0x2;
 const uint8_t UpdateNextParam = 0x4;
+const uint8_t UpdateDpAgain = 0x8;
 
 class Twiddle{
 private:
@@ -29,9 +30,10 @@ private:
     double _best_err;
     
     // Steps using a 8 bit mask
-    bool _isStepUnknownSet();
+    bool _isBestErrorSet();
     bool _isStepDpSumCheckedSet();
     bool _isUpdateNextParamSet();
+    bool _isUpdateDpAgainSet();
     
     /*
      * Specify that the best error has been initialized
@@ -39,9 +41,11 @@ private:
     void _setBestError();
     void _setDpSumChecked();
     void _setUpdateNextParam();
+    void _setUpdateDpAgain();
     
     void _unsetDpSumChecked();
     void _unsetUpdateNextParam();
+    void _unsetUpdateDpAgain();
     
     void _incrementVectorWithDp();
 

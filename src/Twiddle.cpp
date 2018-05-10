@@ -13,8 +13,10 @@
 Twiddle::~Twiddle(){};
 
 void Twiddle::Init(){
-    _params = {0., 0., 0.};
-    _dp = {1., 1., 1.};
+//    _params = {0.15, 0., 2.5};
+    _params = {0.8, 0., 2.69};
+    _dp = {0.0005, 0.0005, 0.0005};
+//    _dp = {0.000533739, 0.000131002, 0.000239182};
 }
 
 double sum(std::vector<double> v){
@@ -26,8 +28,8 @@ double sum(std::vector<double> v){
 }
 
 //------ Srt a bit in the mask
-bool Twiddle::_isStepUnknownSe(){
-    return (_step & StepUnknown) == StepUnknown;
+bool Twiddle::_isBestErrorSet(){
+    return (_step & BestErrorSet) == BestErrorSet;
 }
 
 bool Twiddle::_isStepDpSumCheckedSet(){
@@ -38,7 +40,12 @@ bool Twiddle::_isUpdateNextParamSet(){
     return (_step & UpdateNextParam) == UpdateNextParam;
 }
 
+bool Twiddle::_isUpdateDpAgainSet(){
+    return (_step & UpdateDpAgain) == UpdateDpAgain;
+}
 
+
+//----Set bits
 void Twiddle::_setBestError(){
     _step |= BestErrorSet;
 }
@@ -49,6 +56,10 @@ void Twiddle::_setDpSumChecked(){
 
 void Twiddle::_setUpdateNextParam(){
     _step |= UpdateNextParam;
+}
+
+void Twiddle::_setUpdateDpAgain(){
+    _step |= UpdateDpAgain;
 }
 
 //-----------Unset a bit in the mask
@@ -63,6 +74,11 @@ void Twiddle::_unsetUpdateNextParam(){
     _step &= mask;
 }
 
+void Twiddle::_unsetUpdateDpAgain(){
+    uint8_t mask = ~UpdateDpAgain;
+    _step &= mask;
+}
+
 //----------Other methods
 void Twiddle::_incrementVectorWithDp(){
     _params[_index] += _dp[_index];
@@ -71,18 +87,19 @@ void Twiddle::_incrementVectorWithDp(){
 
 void Twiddle::run(double error, bool &shouldResetSimulator, double tol){
     // if best error not set, early stop
-    if(_isStepUnknownSet()){
+    if(!_isBestErrorSet()){
         _best_err = error;
         _it = 0;
         _setBestError();
-        return;
+//        return;
     }
     
     // do we need to check the sum(dp) at this step? (if inside the for-loop, then we don't need to do that,
     // otherwise we are doing another while loop and we need to check that).
     if (!_isStepDpSumCheckedSet()) {
-        if(sum(_dp) < tol){
-            std::cout << "Iteration " << _it << ", best error = " << error;
+        double s = sum(_dp);
+        if(s > tol){
+            std::cout << "Iteration " << _it << ", best error = " << error << ", sum(dp) = "<< s <<  std::endl;
             _incrementVectorWithDp();
             
             shouldResetSimulator = true;
@@ -91,6 +108,18 @@ void Twiddle::run(double error, bool &shouldResetSimulator, double tol){
             _setDpSumChecked();
             return;
         }
+        std::cout << "Optimal params=[";
+        for (auto &n: _params) {
+            std::cout << n << " ";
+        }
+        std::cout << "]" << std::endl;
+        
+        std::cout << "Optimal d=[";
+        for (auto &n: _dp) {
+            std::cout << n << " ";
+        }
+        std::cout << "]" << std::endl;
+        
         return;
     }
     
@@ -115,12 +144,38 @@ void Twiddle::run(double error, bool &shouldResetSimulator, double tol){
     // still considering the same index, that is the same dp[index]
     if (!_isUpdateNextParamSet()) {
         // inside the for-loop (check the python code reference)
-        if (error < _best_err) {
-            _best_err = error;
-            _dp[_index] *= 1.1;
+        if (_isUpdateDpAgainSet()) {
+            _unsetUpdateDpAgain();
+            
+            if (error < _best_err) {
+                _best_err = error;
+                _dp[_index] *= 1.1;
+            }
+            else{
+                _params[_index] += _dp[_index];
+                _dp[_index] *= 0.9;
+            }
+            
             ++_index;
             _setUpdateNextParam();
             return;
+        }
+        
+        if(!_isUpdateDpAgainSet()){
+            if (error < _best_err) {
+                _best_err = error;
+                _dp[_index] *= 1.1;
+                ++_index;
+                _setUpdateNextParam();
+                return;
+            }
+            else{
+                _params[_index] -= 2 * _dp[_index];
+                
+                _setUpdateDpAgain();
+                shouldResetSimulator = true;
+                return;
+            }
         }
     }
     

@@ -45,9 +45,9 @@ int main()
     // p term-the car quickly overshoot, trying to steer the car toward the center of the road
     // i term: no bias present for the simulator
     // d term:helps to counterpart the p-term
-//    double Kp = 0.15;
-//    double Ki = 0.0;
-//    double Kd = 2.5;
+    //    double Kp = 0.15;
+    //    double Ki = 0.0;
+    //    double Kd = 2.5;
     
     Twiddle twiddle;
     twiddle.Init();
@@ -55,31 +55,17 @@ int main()
     PID pid;
     pid.Init(twiddle.Kp(), twiddle.Ki(), twiddle.Kd());
     
-    
-
-//    clock_t begin;
     int count = 0;
     int n = 100;
     double err = 0.;
-//    bool is_run_cycle = true;
-//
-//    std::vector<double> dp = {1., 1., 1.};
-//    double best_err;
-//    int it = 0;
-//    int index = 0;
-//    bool first_twiddle_run = true;
-//    bool compute_pid = false;
     
-    
-//    h.onMessage([&pid, &count, &err, &dp, &it, &best_err, &index, &is_run_cycle, & first_twiddle_run,n ]
-//                (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
-    h.onMessage([&pid, &twiddle, &count, &err, n]
-                (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+    //    h.onMessage([&pid, &count, &err, &dp, &it, &best_err, &index, &is_run_cycle, & first_twiddle_run,n ]
+    //                (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+    h.onMessage([&pid, &twiddle, &count, &err, n](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
         // "42" at the start of the message means there's a websocket message event.
         // The 4 signifies a websocket message
         // The 2 signifies a websocket event
-        if (length && length > 2 && data[0] == '4' && data[1] == '2')
-        {
+        if (length && length > 2 && data[0] == '4' && data[1] == '2'){
             auto s = hasData(std::string(data).substr(0, length));
             if (s != "") {
                 auto j = json::parse(s);
@@ -97,42 +83,43 @@ int main()
                      * another PID controller to control the speed!
                      */
                     // twiddle
-//                    if (is_run_cycle) {
-                        pid.UpdateError(cte);
-                        steer_value += pid.TotalError();
+                    pid.UpdateError(cte);
+                    steer_value += pid.TotalError();
                     
-                        // DEBUG
-                        std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
+                    // DEBUG
+//                    std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
+                    
+                    // adjust the move using the PID controller
+                    json msgJson;
+                    msgJson["steering_angle"] = steer_value;
+                    msgJson["throttle"] = 0.3;
+                    auto msg = "42[\"steer\"," + msgJson.dump() + "]";
+//                    std::cout << msg << std::endl;
+                    ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
+                    
+                    if (count > 2 * n - 1) {
+                        err = err / n;
+                        bool shouldResetSimulator = false;
+                        twiddle.run(err, shouldResetSimulator);
+                        pid.UpdateControlGains(twiddle.params());
                         
-                        // adjust the move using the PID controller
-                        json msgJson;
-                        msgJson["steering_angle"] = steer_value;
-                        msgJson["throttle"] = 0.3;
-                        auto msg = "42[\"steer\"," + msgJson.dump() + "]";
-                        std::cout << msg << std::endl;
-                        ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
+                        // reset
+                        err = 0.;
+                        count = 0;
                         
-                        
-                        if(count >= n){
-                            err += cte * cte;
+                        // do we need to reset the simulator?
+                        if (shouldResetSimulator) {
+                            std::string reset_msg = "42[\"reset\",{}]";
+                            ws.send(reset_msg.data(), reset_msg.length(), uWS::OpCode::TEXT);
                         }
-                        count++;
-                        
-                        if (count == 2 * n) {
-                            err = err / n;
-                            bool shouldResetSimulator = false;
-                            twiddle.run(err, shouldResetSimulator);
-                            pid.UpdateControlGains(twiddle.params());
-                            
-                            // reset count
-                            count = 0;
-                            
-                            // do we need to reset the simulator?
-                            if (shouldResetSimulator) {
-                                std::string reset_msg = "42[\"reset\",{}]";
-                                ws.send(reset_msg.data(), reset_msg.length(), uWS::OpCode::TEXT);
-                            }
-                        }
+                    }
+                    
+                    if(count >= n){
+                        err += cte * cte;
+                    }
+                    count++;
+                    
+                    
                 }
             } else {
                 // Manual driving
@@ -157,10 +144,10 @@ int main()
         }
     });
     
-//    h.onConnection([&h, &begin](uWS::WebSocket<uWS::SERVER> ws, uWS::HttpRequest req) {
+    //    h.onConnection([&h, &begin](uWS::WebSocket<uWS::SERVER> ws, uWS::HttpRequest req) {
     h.onConnection([&h](uWS::WebSocket<uWS::SERVER> ws, uWS::HttpRequest req) {
         std::cout << "Connected!!!" << std::endl;
-//        begin = clock();
+        //        begin = clock();
     });
     
     h.onDisconnection([&h](uWS::WebSocket<uWS::SERVER> ws, int code, char *message, size_t length) {
