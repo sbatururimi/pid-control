@@ -54,7 +54,7 @@ public:
 //    Twiddle();
     virtual ~Twiddle();
     void Init();
-    void run(double error, bool &shouldResetSimulator, double tol = 0.0001);
+    void run(double error, bool &shouldResetSimulator, double tol = 0.02);
     
     double Kp();
     double Ki();

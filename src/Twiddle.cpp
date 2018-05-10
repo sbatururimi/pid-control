@@ -18,8 +18,8 @@ void Twiddle::Init(){
 //    _dp = {0.0005, 0.0005, 0.0005};
 //    _dp = {0.000533739, 0.000131002, 0.000239182};
     
-    _params = {0.5, 0., 3};
-    _dp = {0.1, 0.1, 0.1};
+    _params = {0, 0., 0};
+    _dp = {1, 1, 1};
 }
 void printVectorValues(std::vector<double> v, std::string name){
     std::cout << name <<" = [";
