@@ -53,7 +53,7 @@ int main()
     pid.Init(twiddle.Kp(), twiddle.Ki(), twiddle.Kd());
     
     int count = 0;
-    int n = 500;
+    int n = 0;
     double err = 0.;
     high_resolution_clock::time_point begin;
 //    time_t begin = 0;
@@ -61,7 +61,7 @@ int main()
     
     //    h.onMessage([&pid, &count, &err, &dp, &it, &best_err, &index, &is_run_cycle, & first_twiddle_run,n ]
     //                (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
-    h.onMessage([&begin, &pid, &twiddle, &count, &err, n](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+    h.onMessage([&begin, &pid, &twiddle, &count, &err, &n](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
         // "42" at the start of the message means there's a websocket message event.
         // The 4 signifies a websocket message
         // The 2 signifies a websocket event
@@ -88,7 +88,11 @@ int main()
                     steer_value = pid.TotalError();
                     
                     // DEBUG
-//                    std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
+                    bool DEBUG = false;
+                    if (DEBUG) {
+                        std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
+                    }
+                    
                     
                     // adjust the move using the PID controller
                     json msgJson;
@@ -113,6 +117,7 @@ int main()
                         // reset
                         err = 0.;
                         count = 0;
+                        n = 0;
 
                         // do we need to reset the simulator?
                         if (shouldResetSimulator) {
@@ -121,10 +126,12 @@ int main()
                         }
                     }
                 
-                    if(count >= n){
+                    if (duration > 10){
+//                    if(count >= n){
+                        n++;
                         err += cte * cte;
                     }
-                    count++;                    
+                    count++;
                     
                 }
             } else {

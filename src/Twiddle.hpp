@@ -52,7 +52,7 @@ public:
 //    Twiddle();
     virtual ~Twiddle();
     void Init();
-    void run(double error, bool &shouldResetSimulator, bool DEBUG = false, double tol = 0.1 );
+    void run(double error, bool &shouldResetSimulator, bool DEBUG = false, double tol = 0.03 );
     
     double Kp();
     double Ki();

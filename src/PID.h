@@ -32,7 +32,7 @@ public:
      */
     virtual ~PID();
     
-    void twiddle(double best_err, double tol=0.0001);
+    void twiddle(double best_err, double tol=0.01);
     /*
      * Initialize PID.
      */

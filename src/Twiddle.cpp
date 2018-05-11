@@ -14,11 +14,10 @@ Twiddle::~Twiddle(){};
 
 void Twiddle::Init(){
 //    _params = {0.15, 0., 2.5};
-    _params = {0.22, 0., 2.5};
-//    _params = {0.09, 0., 2.69};
+    _params = {0.17, 0, 2.51};
     
 //    _params = {0, 0., 0};
-    _dp = {0.1, 0.1, 0.1};
+    _dp = {0.01, 0.01, 0.01};
 }
 void printVectorValues(std::vector<double> v, std::string name){
     std::cout << name <<" = [";
@@ -111,7 +110,7 @@ void Twiddle::run(double error, bool &shouldResetSimulator, bool DEBUG, double t
         double s = sum(_dp);
         if(s > tol){
             
-            std::cout << std::endl << "Iteration " << _it << ", best error = " << error << ", sum(dp) = "<< s <<  std::endl;
+            std::cout << std::endl << "Iteration " << _it << ", best error = " << _best_err << ", sum(dp) = "<< s <<  std::endl;
             printVectorValues(_params, "p");
             printVectorValues(_dp, "dp");
             std::cout << std::endl;
@@ -124,9 +123,12 @@ void Twiddle::run(double error, bool &shouldResetSimulator, bool DEBUG, double t
             _setDpSumChecked();
             return;
         }
-        std::cout<<"Optimal values found" << std::endl << std::endl;
-        printVectorValues(_params, "p");
-        printVectorValues(_dp, "dp");
+        if (DEBUG) {
+            std::cout<<"Optimal values found" << std::endl << std::endl;
+            printVectorValues(_params, "p");
+            printVectorValues(_dp, "dp");
+        }
+        
         
         return;
     }
@@ -142,7 +144,7 @@ void Twiddle::run(double error, bool &shouldResetSimulator, bool DEBUG, double t
             _index = 0;
             ++_it;
             _unsetDpSumChecked();
-            run(error, shouldResetSimulator);
+            run(error, shouldResetSimulator, DEBUG);
             return;
         }
          _params[_index] += _dp[_index];
@@ -151,6 +153,7 @@ void Twiddle::run(double error, bool &shouldResetSimulator, bool DEBUG, double t
         if (DEBUG) {
             std::cout << "update next param, index=" << _index << std::endl;
             printVectorValues(_params, "p");
+            printVectorValues(_dp, "dp");
         }
         return;
     }
@@ -173,13 +176,14 @@ void Twiddle::run(double error, bool &shouldResetSimulator, bool DEBUG, double t
             
             if (DEBUG) {
                 std::cout << "update dp again, go to next index after index=" << _index << std::endl;
+                printVectorValues(_params, "p");
                 printVectorValues(_dp, "dp");
             }
             
             ++_index;
             _setUpdateNextParam();
             
-            run(error, shouldResetSimulator);
+            run(error, shouldResetSimulator, DEBUG);
             return;
         }
         
@@ -190,14 +194,15 @@ void Twiddle::run(double error, bool &shouldResetSimulator, bool DEBUG, double t
                 
                 if (DEBUG) {
                     std::cout << "update dp, go to next index after index=" << _index  << std::endl;
-                    printVectorValues(_dp, "dp");
+                    printVectorValues(_params, "p");
+                    printVectorValues(_dp, "dp");;
                 }
                 
                 ++_index;
                 _setUpdateNextParam();
                 
                 // go to the next i of the for-loop
-                run(error, shouldResetSimulator);
+                run(error, shouldResetSimulator, DEBUG);
                 return;
             }
             else{
@@ -206,6 +211,7 @@ void Twiddle::run(double error, bool &shouldResetSimulator, bool DEBUG, double t
                 if (DEBUG) {
                     std::cout << "reset param, index=" << _index << std::endl;
                     printVectorValues(_params, "p");
+                    printVectorValues(_dp, "dp");
                 }
                 
                 _setUpdateDpAgain();
