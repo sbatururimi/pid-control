@@ -106,4 +106,4 @@ Be aware, that in the twiddle code all hyperparameters of the PID controller and
 To find the approximativelly value, you should start for example with p=[0, 0, 0], dp=[1, 1, 1] and a threshold of 0.2 and then gradually updating these values.
 
 ## What next
-The twiddle implementation is not very well optimized for a callback call, i.e interactio with the simulator and investigation may be done in this direction.
+The twiddle implementation is not very well optimized for a callback call, i.e interactioт with the simulator and investigation may be done in this direction. Also we could run the twiddle algorithm with a lower threshold and with a much longer error computation when computing the cte.
