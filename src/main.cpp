@@ -111,7 +111,7 @@ int main()
                     if (duration > 36.176) { // in front of the bridge
                         err = err / n;
                         bool shouldResetSimulator = false;
-                        twiddle.run(err, shouldResetSimulator, true);
+                        twiddle.run(err, shouldResetSimulator, DEBUG);
                         pid.UpdateControlGains(twiddle.params());
 
                         // reset
