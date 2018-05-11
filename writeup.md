@@ -78,13 +78,16 @@ ws.send(reset_msg.data(), reset_msg.length(), uWS::OpCode::TEXT);
 ```
 
 Now, let's consider the callbacks to the simulator. These are the following ones:
+
 ![alt text][image1]
 
 In order to keep track of the twiddle execution and the switch back to the simulator call, I use a 4-bit mask (**_step** in the code):
-![alt text][image1]
+
+![alt text][image2]
 
 The order has been slightly changed in the c++ code but still follows the same logic as the python code. For the logic behind the mask, here the scheme:
-![alt text][image2]
+
+![alt text][image3]
 
 After several loops of the twiddle algorithm with a threshold of 0.01, we found:
 ```
