@@ -25,8 +25,8 @@ The following observation and approach waas used to perform a simple tuning of t
 1) I have first set all PID parameters (p-term, i-term and d-term) to 0. And augmented each separatelly first.
 2) the p term-the car quickly overshoot, trying to steer the car toward the center of the road.
 I started with it, putting other parameters to 0.
-3) i-term: no bias present for the simulator. Otherwise makes the car to go in circles
-4) d-term:helps to counterpart the p-term, smoothing the approach to the center line
+3) i-term: no bias present for the simulator. Otherwise makes the car to go in circles.
+4) d-term:helps to counterpart the p-term, smoothing the approach to the center line.
 
 Using this approach the following values were proved to be good enough:
 p = 0.15
@@ -83,7 +83,7 @@ Now, let's consider the callbacks to the simulator. These are the following ones
 In order to keep track of the twiddle execution and the switch back to the simulator call, I use a 4-bit mask (**_step** in the code):
 ![alt text][image1]
 
-The order has been slightly changed in the c++ code but still follows the python code. For the logic behind the mask, here the scheme:
+The order has been slightly changed in the c++ code but still follows the same logic as the python code. For the logic behind the mask, here the scheme:
 ![alt text][image2]
 
 ---
@@ -93,5 +93,8 @@ The project includes the following files:
 * `PID.cpp` containing the PID controller implementation
 * `Twiddle.cpp` the twiddle algorithm implementation
 
+Be aware, that in the twiddle code all hyperparameters of the PID controller and the dp vector have already been tuned after several for loops.
+To find the approximativelly value, you should start for example with p=[0, 0, 0], dp=[1, 1, 1] and a threshold of 0.2 and then gradually updating these values.
+
 ## What next
-It should be interesting to use the time step instead of the number of loops when dealing with the error computation also the twiddle implementation is not very well optimized for a callback call and investigation may be done in this direction.
+The twiddle implementation is not very well optimized for a callback call, i.e interactio with the simulator and investigation may be done in this direction.

@@ -46,15 +46,13 @@ private:
     void _unsetDpSumChecked();
     void _unsetUpdateNextParam();
     void _unsetUpdateDpAgain();
-    
-    void _incrementVectorWithDp();
 
 public:
     Twiddle(): _index(0), _step(StepUnknown), _best_err(0.) {};
 //    Twiddle();
     virtual ~Twiddle();
     void Init();
-    void run(double error, bool &shouldResetSimulator, double tol = 0.02);
+    void run(double error, bool &shouldResetSimulator, bool DEBUG = false, double tol = 0.1 );
     
     double Kp();
     double Ki();

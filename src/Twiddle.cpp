@@ -14,19 +14,24 @@ Twiddle::~Twiddle(){};
 
 void Twiddle::Init(){
 //    _params = {0.15, 0., 2.5};
+    _params = {0.22, 0., 2.5};
 //    _params = {0.09, 0., 2.69};
-//    _dp = {0.0005, 0.0005, 0.0005};
-//    _dp = {0.000533739, 0.000131002, 0.000239182};
     
-    _params = {0, 0., 0};
-    _dp = {1, 1, 1};
+//    _params = {0, 0., 0};
+    _dp = {0.1, 0.1, 0.1};
 }
 void printVectorValues(std::vector<double> v, std::string name){
     std::cout << name <<" = [";
-    for (auto &n: v) {
-        std::cout << n << " ";
+    for (int i = 0; i < v.size(); ++i) {
+        std::cout << v[i];
+        if (i == v.size() - 1) {
+            std::cout << "]" << std::endl;
+        }
+        else{
+            std::cout << ", ";
+        }
     }
-    std::cout << "]" << std::endl;
+    
 }
 
 
@@ -91,12 +96,8 @@ void Twiddle::_unsetUpdateDpAgain(){
 }
 
 //----------Other methods
-void Twiddle::_incrementVectorWithDp(){
-    _params[_index] += _dp[_index];
-}
 
-
-void Twiddle::run(double error, bool &shouldResetSimulator, double tol){
+void Twiddle::run(double error, bool &shouldResetSimulator, bool DEBUG, double tol){
     // if best error not set, early stop
     if(!_isBestErrorSet()){
         _best_err = error;
@@ -109,10 +110,13 @@ void Twiddle::run(double error, bool &shouldResetSimulator, double tol){
     if (!_isStepDpSumCheckedSet()) {
         double s = sum(_dp);
         if(s > tol){
-            std::cout << "Iteration " << _it << ", best error = " << error << ", sum(dp) = "<< s <<  std::endl;
+            
+            std::cout << std::endl << "Iteration " << _it << ", best error = " << error << ", sum(dp) = "<< s <<  std::endl;
             printVectorValues(_params, "p");
             printVectorValues(_dp, "dp");
-            _incrementVectorWithDp();
+            std::cout << std::endl;
+            
+             _params[_index] += _dp[_index];
             
             shouldResetSimulator = true;
             
@@ -120,6 +124,7 @@ void Twiddle::run(double error, bool &shouldResetSimulator, double tol){
             _setDpSumChecked();
             return;
         }
+        std::cout<<"Optimal values found" << std::endl << std::endl;
         printVectorValues(_params, "p");
         printVectorValues(_dp, "dp");
         
@@ -131,15 +136,22 @@ void Twiddle::run(double error, bool &shouldResetSimulator, double tol){
         
         // for-loop finished, do a new iteration in the while-loop
         if(_index == _params.size()){
+            if (DEBUG) {
+                std::cout << "for-loop finished" << std::endl;
+            }
             _index = 0;
             ++_it;
             _unsetDpSumChecked();
+            run(error, shouldResetSimulator);
             return;
         }
-        
-        _incrementVectorWithDp();
+         _params[_index] += _dp[_index];
         shouldResetSimulator = true;
         
+        if (DEBUG) {
+            std::cout << "update next param, index=" << _index << std::endl;
+            printVectorValues(_params, "p");
+        }
         return;
     }
     
@@ -159,8 +171,15 @@ void Twiddle::run(double error, bool &shouldResetSimulator, double tol){
                 _dp[_index] *= 0.9;
             }
             
+            if (DEBUG) {
+                std::cout << "update dp again, go to next index after index=" << _index << std::endl;
+                printVectorValues(_dp, "dp");
+            }
+            
             ++_index;
             _setUpdateNextParam();
+            
+            run(error, shouldResetSimulator);
             return;
         }
         
@@ -168,12 +187,26 @@ void Twiddle::run(double error, bool &shouldResetSimulator, double tol){
             if (error < _best_err) {
                 _best_err = error;
                 _dp[_index] *= 1.1;
+                
+                if (DEBUG) {
+                    std::cout << "update dp, go to next index after index=" << _index  << std::endl;
+                    printVectorValues(_dp, "dp");
+                }
+                
                 ++_index;
                 _setUpdateNextParam();
+                
+                // go to the next i of the for-loop
+                run(error, shouldResetSimulator);
                 return;
             }
             else{
                 _params[_index] -= 2 * _dp[_index];
+                
+                if (DEBUG) {
+                    std::cout << "reset param, index=" << _index << std::endl;
+                    printVectorValues(_params, "p");
+                }
                 
                 _setUpdateDpAgain();
                 shouldResetSimulator = true;

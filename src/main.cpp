@@ -5,6 +5,10 @@
 #include "Twiddle.hpp"
 #include <math.h>
 
+#include <chrono>
+
+using namespace std::chrono;
+
 // for convenience
 using json = nlohmann::json;
 
@@ -29,13 +33,6 @@ std::string hasData(std::string s) {
     return "";
 }
 
-//double sum(std::vector<double> v){
-//    double _sum = 0.;
-//    for(auto &n: v){
-//        _sum += n;
-//    }
-//    return _sum;
-//}
 
 int main()
 {
@@ -56,12 +53,15 @@ int main()
     pid.Init(twiddle.Kp(), twiddle.Ki(), twiddle.Kd());
     
     int count = 0;
-    int n = 10;
+    int n = 500;
     double err = 0.;
+    high_resolution_clock::time_point begin;
+//    time_t begin = 0;
+    
     
     //    h.onMessage([&pid, &count, &err, &dp, &it, &best_err, &index, &is_run_cycle, & first_twiddle_run,n ]
     //                (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
-    h.onMessage([&pid, &twiddle, &count, &err, n](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+    h.onMessage([&begin, &pid, &twiddle, &count, &err, n](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
         // "42" at the start of the message means there's a websocket message event.
         // The 4 signifies a websocket message
         // The 2 signifies a websocket event
@@ -84,7 +84,8 @@ int main()
                      */
                     // twiddle
                     pid.UpdateError(cte);
-                    steer_value += pid.TotalError();
+//                    steer_value += pid.TotalError();
+                    steer_value = pid.TotalError();
                     
                     // DEBUG
 //                    std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
@@ -97,28 +98,33 @@ int main()
 //                    std::cout << msg << std::endl;
                     ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
                     
-                    if (count > 2 * n - 1) {
+                    
+//                    std::cout << begin << std::endl;
+                    high_resolution_clock::time_point end = high_resolution_clock::now();
+                    auto duration = duration_cast<milliseconds>( end - begin ).count() / 1000.;
+//                    std::cout << "duration: " << duration << std::endl;
+//                    if (count > 2 * n - 1) {
+                    if (duration > 36.176) { // in front of the bridge
                         err = err / n;
                         bool shouldResetSimulator = false;
-                        twiddle.run(err, shouldResetSimulator);
+                        twiddle.run(err, shouldResetSimulator, true);
                         pid.UpdateControlGains(twiddle.params());
-                        
+
                         // reset
                         err = 0.;
                         count = 0;
-                        
+
                         // do we need to reset the simulator?
                         if (shouldResetSimulator) {
                             std::string reset_msg = "42[\"reset\",{}]";
                             ws.send(reset_msg.data(), reset_msg.length(), uWS::OpCode::TEXT);
                         }
                     }
-                    
+                
                     if(count >= n){
                         err += cte * cte;
                     }
-                    count++;
-                    
+                    count++;                    
                     
                 }
             } else {
@@ -144,10 +150,14 @@ int main()
         }
     });
     
-    //    h.onConnection([&h, &begin](uWS::WebSocket<uWS::SERVER> ws, uWS::HttpRequest req) {
-    h.onConnection([&h](uWS::WebSocket<uWS::SERVER> ws, uWS::HttpRequest req) {
+    h.onConnection([&h, &begin](uWS::WebSocket<uWS::SERVER> ws, uWS::HttpRequest req) {
         std::cout << "Connected!!!" << std::endl;
-        //        begin = clock();
+        begin = high_resolution_clock::now();
+//        std::time_t now_c = std::chrono::system_clock::to_time_t(begin);
+//        std::cout << now_c;
+        
+//        time(&begin);
+//        std::cout << begin << std::endl;
     });
     
     h.onDisconnection([&h](uWS::WebSocket<uWS::SERVER> ws, int code, char *message, size_t length) {
