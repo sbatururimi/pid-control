@@ -21,14 +21,14 @@ I started by implementing a simple PID controller and by tuning the PID hyperpar
 Then I used an implementation of the twiddle algorithm to tune further these hyperparameters.
 
 ### PID controller
-The following observation and approach waas used to perform a simple tuning of the hyperparameters:
+The following observation and approach was used to perform a simple tuning of the hyperparameters:
 1) I have first set all PID parameters (p-term, i-term and d-term) to 0. And augmented each separatelly first.
 2) the p term-the car quickly overshoot, trying to steer the car toward the center of the road.
 I started with it, putting other parameters to 0.
 3) i-term: no bias present for the simulator. Otherwise makes the car to go in circles.
 4) d-term:helps to counterpart the p-term, smoothing the approach to the center line.
 
-Using this approach the following values were proved to be good enough:
+Using the manual tunning approach the following values were proved to be good enough:
 p = 0.15
 i = 0.
 d = 2.5
@@ -85,6 +85,12 @@ In order to keep track of the twiddle execution and the switch back to the simul
 
 The order has been slightly changed in the c++ code but still follows the same logic as the python code. For the logic behind the mask, here the scheme:
 ![alt text][image2]
+
+After several loops of the twiddle algorithm with a threshold of 0.01, we found:
+```
+p = {0.17, 0, 2.51}
+```
+where p[i] stands for Kp, Ki, Kd.
 
 ---
 ### Files Submitted & Code Quality
